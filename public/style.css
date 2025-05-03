@@ -1,0 +1,169 @@
+body {
+  background-color: #1f080b;
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  color: white;
+}
+
+h2 {
+  color: #e6e6e6;
+  border-bottom: 1px solid white;
+  padding: 5px;
+}
+
+label {
+  font-weight: bold;
+}
+
+.container {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+}
+
+.container > div {
+  flex: 1; /* 기본 크기 */
+}
+
+.container > div:first-child {
+  flex: 5;
+}
+
+.container > div:last-child {
+  flex: 2;
+}
+
+/* 추가: 자식이 1개일 때 100% */
+.container.single-column > div {
+  flex: 1 1 100%;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #d3bdc2;
+  color: #333;
+}
+
+table,
+th,
+td {
+  border: 1px solid #fff;
+}
+
+th {
+  background-color: #fff;
+  color: #451919;
+}
+
+th,
+td {
+  padding: 8px;
+  text-align: left;
+  font-weight: bold;
+}
+
+.pastel-wrapper {
+  margin: 10px 0;
+}
+
+.pastel {
+  display: inline-block;
+  margin: 5px;
+  padding: 10px;
+  color: #333;
+}
+
+.pastel0 {
+  background-color: #ffe0e6;
+}
+.pastel1 {
+  background-color: #e0f7fa;
+}
+.pastel2 {
+  background-color: #e6f4ea;
+}
+.pastel3 {
+  background-color: #fff9db;
+}
+.pastel4 {
+  background-color: #f0e6f6;
+}
+.pastel5 {
+  background-color: #fce4ec;
+}
+.pastel6 {
+  background-color: #d7f0fa;
+}
+.pastel7 {
+  background-color: #f3ffe3;
+}
+.pastel8 {
+  background-color: #fdebd3;
+}
+.pastel9 {
+  background-color: #e3f2fd;
+}
+
+button {
+  padding: 10px;
+  width: 100%;
+  background-color: white;
+  font-weight: bold;
+  border: none;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 5px;
+  margin-bottom: 10px;
+}
+
+.patient_input_inner {
+  margin-bottom: 10px;
+}
+
+.patient_input_initial {
+  margin-bottom: 20px;
+}
+
+.button_box {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.button_box form {
+  display: inline-block;
+  margin: 0 5px;
+}
+
+#patient_submit {
+  margin-top: 10px;
+  background-color: #540101;
+  color: white;
+}
+
+#waitlist_button {
+  background-color: white;
+}
+
+#roomNumber {
+  text-align: center;
+  padding: 5px;
+  background-color: #1b0505;
+  color: white;
+}
+
+#cancle {
+  background-color: #5e0101;
+  color: white;
+}
+
+#complete {
+  background-color: #000;
+  color: white;
+}
+
+#roomNumberSelect {
+  border: 3px solid #ae6060;
+}

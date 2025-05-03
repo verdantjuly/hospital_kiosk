@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>환자 관리</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  </head>
+  <body>
+    <div>
+      <input type="radio" name="room" value="desk"  />
+      데스크</label
+    >
+    <label
+      ><input type="radio" name="room" value="dr"  />
+      진료실</label
+    >
+  </div>
+    <div class="container">
+      <div>
+        
+        <div class="column">
+          <h2>진료 중인 환자</h2>
+          <table>
+            <colgroup>
+              <col width="15%" />
+              <col width="15%" />
+              <col width="30%" />
+              <col width="20%" />
+              <col width="20%" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>차트번호</th>
+                <th>이름</th>
+                <th>이니셜</th>
+                <th>진료실</th>
+                <th>액션</th>
+              </tr>
+            </thead>
+            <tbody id="activePatients"></tbody>
+          </table>
+        </div>
+        <div class="column">
+          <h2>진료 예정 환자</h2>
+          <table>
+            <colgroup>
+              <col width="15%" />
+                <col width="15%" />
+                <col width="30%" />
+                <col width="20%" />
+                <col width="20%" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>차트번호</th>
+                <th>이름</th>
+                <th>이니셜</th>
+                <th>진료실</th>
+                <th>액션</th>
+              </tr>
+            </thead>
+            <tbody id="sortable">
+              <!-- Patient rows will be dynamically added here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="patient_input">
+        <h2>환자 정보 입력</h2>
+        <form class="patient_input_inner" action="/submit" method="post">
+          <div class="patient_input_info">
+            <label
+              >차트번호 <input type="text" name="chartNumber" required /></label
+            ><br />
+            <label>이름 <input type="text" name="name" required /></label><br />
+            
+          </div>
+          <div class="patient_input_initial">
+            <label>이니셜</label>
+            <div class="pastel-wrapper">
+            </div>
+            <label> 메모</label>
+            <input name="memo" type="text"/>
+            <button type="submit" id="patient_submit">제출</button>
+          </div>
+        </form>
+        <button id="waitlist_button">보류자 목록</button>
+      </div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
