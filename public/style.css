@@ -1,12 +1,12 @@
 body {
-  background-color: #1f080b;
+  background: linear-gradient(#2c0b10, rgb(79, 54, 58));
   font-family: Arial, sans-serif;
-  padding: 20px;
+  padding: 50px;
   color: white;
 }
 
 h2 {
-  color: #e6e6e6;
+  color: #fffdfd;
   border-bottom: 1px solid white;
   padding: 5px;
 }
@@ -17,8 +17,16 @@ label {
 
 .container {
   display: flex;
-  gap: 20px;
   width: 100%;
+}
+
+.container > * {
+  margin-right: 20px;
+}
+
+/* 마지막 요소의 오른쪽 마진 제거 */
+.container > *:last-child {
+  margin-right: 0;
 }
 
 .container > div {
@@ -41,19 +49,19 @@ label {
 table {
   width: 100%;
   border-collapse: collapse;
-  background-color: #d3bdc2;
-  color: #333;
+  background-color: rgba(255, 232, 232, 0.723);
+  color: rgb(55, 0, 0);
 }
 
 table,
 th,
 td {
-  border: 1px solid #fff;
+  border: 1px solid #2d0101;
 }
 
 th {
-  background-color: #fff;
-  color: #451919;
+  background-color: #fafafa;
+  color: #210000;
 }
 
 th,
@@ -71,38 +79,36 @@ td {
   display: inline-block;
   margin: 5px;
   padding: 10px;
-  color: #333;
+  color: #000000;
+  border-radius: 20px;
 }
 
 .pastel0 {
-  background-color: #ffe0e6;
+  background-color: #d788ff;
 }
 .pastel1 {
-  background-color: #e0f7fa;
+  background-color: #a0a0a0;
 }
 .pastel2 {
-  background-color: #e6f4ea;
+  background-color: #ffffff;
 }
 .pastel3 {
-  background-color: #fff9db;
+  background-color: #ff4949;
 }
 .pastel4 {
-  background-color: #f0e6f6;
+  background-color: #528af9;
 }
 .pastel5 {
-  background-color: #fce4ec;
+  background-color: #5ecf45;
 }
 .pastel6 {
-  background-color: #d7f0fa;
+  background-color: #f59a54;
 }
 .pastel7 {
-  background-color: #f3ffe3;
+  background-color: #96d095;
 }
 .pastel8 {
-  background-color: #fdebd3;
-}
-.pastel9 {
-  background-color: #e3f2fd;
+  background-color: #ffeb38;
 }
 
 button {
@@ -139,11 +145,14 @@ input[type="text"] {
 
 #patient_submit {
   margin-top: 10px;
-  background-color: #540101;
+  background-color: #320101;
   color: white;
+  border: white solid 1px;
+  border-radius: 10px;
 }
 
 #waitlist_button {
+  border-radius: 10px;
   background-color: white;
 }
 
@@ -165,5 +174,9 @@ input[type="text"] {
 }
 
 #roomNumberSelect {
-  border: 3px solid #ae6060;
+  border: 3px solid #540d0d;
+}
+
+button:hover {
+  scale: 1.05;
 }
