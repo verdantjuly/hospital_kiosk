@@ -3,8 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <title>환자 관리</title>
+    <!-- jQuery & jQuery UI -->
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+
     <link rel="stylesheet" href="style.css" />
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   </head>
   <body>
     <div>
@@ -65,6 +68,30 @@
             </tbody>
           </table>
         </div>
+        <div class="column" id="waitlistSection" style="display: none;">
+          <h2>보류자 목록</h2>
+          <table>
+            <colgroup>
+              <col width="15%" />
+              <col width="15%" />
+              <col width="30%" />
+              <col width="20%" />
+              <col width="20%" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>차트번호</th>
+                <th>이름</th>
+                <th>이니셜</th>
+                <th>메모</th>
+                <th>복귀</th>
+                
+              </tr>
+            </thead>
+            <tbody id="waitlistTableBody"></tbody>
+          </table>
+        </div>
+        
       </div>
       <div class="patient_input">
         <h2>환자 정보 입력</h2>

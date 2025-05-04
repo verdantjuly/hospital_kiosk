@@ -3,6 +3,7 @@ body {
   font-family: Arial, sans-serif;
   padding: 50px;
   color: white;
+  height: 100vh;
 }
 
 h2 {
@@ -110,8 +111,12 @@ td {
 .pastel8 {
   background-color: #ffeb38;
 }
+.pastel9 {
+  background-color: #f2b0f5;
+}
 
 button {
+  border-radius: 10px;
   padding: 10px;
   width: 100%;
   background-color: white;
@@ -160,6 +165,7 @@ input[type="text"] {
   text-align: center;
   padding: 5px;
   background-color: #1b0505;
+  border-radius: 20px;
   color: white;
 }
 
@@ -179,4 +185,25 @@ input[type="text"] {
 
 button:hover {
   scale: 1.05;
+}
+
+.sortable-ghost {
+  opacity: 0.3;
+}
+
+.dragging {
+  opacity: 0.6;
+  background-color: #f0f8ff;
+  border: 2px dashed #4a90e2;
+}
+
+#sortable tr {
+  cursor: move;
+}
+#sortable td {
+  padding: 10px;
+}
+.selected {
+  background-color: white;
+  color: black;
 }
