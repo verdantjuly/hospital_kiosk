@@ -12,6 +12,9 @@ const db = new sqlite3.Database("patients.db");
 
 db.serialize(() => {
   db.run(`
+    DROP TABLE IF EXISTS patients;
+  `);
+  db.run(`
     CREATE TABLE IF NOT EXISTS patients (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       chartNumber TEXT,
