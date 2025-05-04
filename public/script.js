@@ -1,28 +1,119 @@
-let isDragging = false;
+// Polyfill for JSON in IE8
+if (!window.JSON) {
+  window.JSON = {
+    parse: function (s) {
+      return eval("(" + s + ")");
+    },
+    stringify: function (v) {
+      var json = [];
+      for (var i in v) {
+        if (v.hasOwnProperty(i)) {
+          json.push('"' + i + '":"' + v[i] + '"');
+        }
+      }
+      return "{" + json.join(",") + "}";
+    },
+  };
+}
 
+// Polyfill for classList
+if (!("classList" in document.documentElement)) {
+  (function (view) {
+    if (!("classList" in document.documentElement)) {
+      Object.defineProperty(Element.prototype, "classList", {
+        get: function () {
+          var className = this.className;
+          var classes = className.split(/\s+/);
+          var self = this;
+
+          return {
+            add: function (className) {
+              if (!self.hasClass(className)) {
+                self.className += " " + className;
+              }
+            },
+            remove: function (className) {
+              if (self.hasClass(className)) {
+                self.className = self.className
+                  .replace(className, "")
+                  .replace(/\s+/g, " ")
+                  .trim();
+              }
+            },
+            contains: function (className) {
+              return new RegExp("(^|\\s)" + className + "(\\s|$)").test(
+                self.className
+              );
+            },
+          };
+        },
+      });
+    }
+  })(window);
+}
+
+// Polyfill for addEventListener and removeEventListener
+if (!window.addEventListener) {
+  window.addEventListener = function (type, listener) {
+    return this.attachEvent("on" + type, listener);
+  };
+  window.removeEventListener = function (type, listener) {
+    return this.detachEvent("on" + type, listener);
+  };
+}
+
+// Cross-browser event listener setup
+function addEventListenerCompat(element, event, handler) {
+  if (element.addEventListener) {
+    element.addEventListener(event, handler, false);
+  } else if (element.attachEvent) {
+    element.attachEvent("on" + event, handler);
+  }
+}
+
+function removeEventListenerCompat(element, event, handler) {
+  if (element.removeEventListener) {
+    element.removeEventListener(event, handler, false);
+  } else if (element.detachEvent) {
+    element.detachEvent("on" + event, handler);
+  }
+}
+
+function closestPolyfill(element, selector) {
+  // Polyfill for IE8 to replace closest()
+  while (element) {
+    if (element.matches(selector)) {
+      return element;
+    }
+    element = element.parentNode;
+  }
+  return null;
+}
+let isDragging = false;
 let draggedRow = null;
 let draggedMemoRow = null;
 
 function onDragStart(event) {
   draggedRow = event.target;
-  draggedRow.classList.add("dragging");
+  draggedRow.className += " dragging"; // Using className for IE8 compatibility
 
-  // 메모 row 찾기
+  // Find memo row
   draggedMemoRow = draggedRow.nextElementSibling;
-  if (!draggedMemoRow?.classList.contains("memo-row")) {
+  if (draggedMemoRow && !draggedMemoRow.className.match("memo-row")) {
     draggedMemoRow = null;
   }
 
   event.dataTransfer.effectAllowed = "move";
 
-  // 🔥 드래그 시작과 동시에 메모 row를 본체 바로 아래로 재정렬
+  // Re-arrange memo row immediately below dragged row
   if (draggedMemoRow) {
     draggedRow.parentNode.insertBefore(draggedMemoRow, draggedRow.nextSibling);
   }
 }
 
 function onDragEnd() {
-  if (draggedRow) draggedRow.classList.remove("dragging");
+  if (draggedRow)
+    draggedRow.className = draggedRow.className.replace(" dragging", ""); // Remove dragging class
 
   draggedRow = null;
   draggedMemoRow = null;
@@ -32,66 +123,87 @@ function onDragOver(event) {
   event.preventDefault();
   const targetRow = event.target.closest("tr");
 
-  // 메모 row이면 무시
-  if (targetRow?.classList.contains("memo-row") || targetRow === draggedRow)
+  if (
+    (targetRow && targetRow.className.match("memo-row")) ||
+    targetRow === draggedRow
+  )
     return;
 
-  targetRow.classList.add("drag-over");
+  targetRow.className += " drag-over"; // Using className for IE8 compatibility
 }
 
 function onDrop(event) {
   event.preventDefault();
   const targetRow = event.target.closest("tr");
 
-  // Ignore if the target row is a memo row or the same as the dragged row
   if (
     !targetRow ||
-    targetRow.classList.contains("memo-row") ||
+    targetRow.className.match("memo-row") ||
     targetRow === draggedRow
   )
     return;
 
-  const rows = Array.from(document.querySelectorAll("#sortable tr")).filter(
-    (row) => !row.classList.contains("memo-row")
-  ); // Exclude memo rows for proper reordering
+  const rows = Array.prototype.slice
+    .call(document.querySelectorAll("#sortable tr"))
+    .filter(function (row) {
+      return !row.className.match("memo-row");
+    });
 
   const draggedIndex = rows.indexOf(draggedRow);
   const targetIndex = rows.indexOf(targetRow);
 
   if (draggedIndex < targetIndex) {
-    // Move the dragged row after the target row
     targetRow.parentNode.insertBefore(draggedRow, targetRow.nextSibling);
     if (draggedMemoRow) {
-      // Insert the memo row after the dragged row
       targetRow.parentNode.insertBefore(draggedMemoRow, draggedRow.nextSibling);
     }
   } else {
-    // Move the dragged row before the target row
     targetRow.parentNode.insertBefore(draggedRow, targetRow);
     if (draggedMemoRow) {
-      // Insert the memo row after the dragged row
       targetRow.parentNode.insertBefore(draggedMemoRow, draggedRow.nextSibling);
     }
   }
 
-  // Update the row order after moving
   updateRowOrder();
-
-  // Remove the "drag-over" class
-  targetRow.classList.remove("drag-over");
+  targetRow.className = targetRow.className.replace(" drag-over", ""); // Remove drag-over class
 }
-
 function updateRowOrder() {
-  const rows = Array.from(document.querySelectorAll("#sortable tr"));
-  const updates = rows.map((row, index) => ({
-    id: row.getAttribute("data-id"),
-    orderIndex: index,
-  }));
+  const rows = Array.prototype.slice.call(
+    document.querySelectorAll("#sortable tr")
+  );
+  const updates = [];
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    updates.push({ id: row.getAttribute("data-id"), orderIndex: i });
+  }
 
   const xhr = createXHR();
   xhr.open("POST", "/reorder", true);
   xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
   xhr.send(JSON.stringify(updates));
+}
+
+// Creating a compatible XHR object for IE8
+function createXHR() {
+  return window.XMLHttpRequest
+    ? new XMLHttpRequest()
+    : new ActiveXObject("Microsoft.XMLHTTP");
+}
+
+function initializeDraggableRows() {
+  var rows = document.querySelectorAll("#sortable tr");
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+
+    if (row.className.match("memo-row")) continue;
+
+    row.setAttribute("draggable", true);
+    row.attachEvent("ondragstart", onDragStart);
+    row.attachEvent("ondragend", onDragEnd);
+    row.attachEvent("ondragover", onDragOver);
+    row.attachEvent("ondrop", onDrop);
+  }
 }
 
 function setRowDraggable(row) {
@@ -105,7 +217,11 @@ function setRowDraggable(row) {
 }
 
 function initializeDraggableRows() {
-  document.querySelectorAll("#sortable tr").forEach(setRowDraggable);
+  var rows = document.querySelectorAll("#sortable tr");
+
+  for (var i = 0; i < rows.length; i++) {
+    setRowDraggable(rows[i]);
+  }
 }
 
 function createXHR() {
@@ -116,13 +232,19 @@ function createXHR() {
 
 function makePastelHTML(initials) {
   if (!initials || initials.length === 0) return "";
-  return initials
-    .map((item) => {
-      const [idx, symbol] = item.split("_");
-      return `<div class="pastel pastel${idx}">${symbol}</div>`;
-    })
-    .join("");
+
+  var html = "";
+  for (var i = 0; i < initials.length; i++) {
+    var item = initials[i];
+    var parts = item.split("_");
+    var idx = parts[0];
+    var symbol = parts[1];
+    html += '<div class="pastel pastel' + idx + '">' + symbol + "</div>";
+  }
+
+  return html;
 }
+
 function updatePatientTable(patients) {
   const tableBody = document.getElementById("sortable");
   const activePatients = document.getElementById("activePatients");
@@ -135,74 +257,94 @@ function updatePatientTable(patients) {
     return;
   }
 
-  patients.forEach((patient) => {
-    const initials = patient.initial ? patient.initial.split(", ") : [];
-    const row = document.createElement("tr");
+  for (var i = 0; i < patients.length; i++) {
+    var patient = patients[i];
+    var initials = patient.initial ? patient.initial.split(", ") : [];
+    var row = document.createElement("tr");
     row.setAttribute("data-id", patient.id);
+
     if (patient.inTreatment && patient.roomNumber == 1) {
       row.style.backgroundColor = "seashell";
     }
-    let html = `
-            <td>${patient.chartNumber}</td>
-            <td>${patient.name}</td>
-            <td><div class="pastel-wrapper">${makePastelHTML(
-              initials
-            )}</div></td>
-          `;
+
+    var html =
+      "<td>" +
+      patient.chartNumber +
+      "</td>" +
+      "<td>" +
+      patient.name +
+      "</td>" +
+      '<td><div class="pastel-wrapper">' +
+      makePastelHTML(initials) +
+      "</div></td>";
 
     if (patient.inTreatment) {
       row.setAttribute("draggable", "true");
-      html += `
-              <td><div id="roomNumber">${patient.roomNumber}</div></td>
-              <td>
-                <div class="button_box">
-                  <form action="/cancle" method="POST">
-                    <input type="hidden" name="id" value="${patient.id}" />
-                    <button type="submit" id="cancle">해제</button>
-                  </form>
-                  <form action="/complete" method="POST">
-                    <input type="hidden" name="id" value="${patient.id}" />
-                    <button type="submit" id="complete">완료</button>
-                  </form>
-                </div>
-              </td>
-            `;
+      html +=
+        '<td><div id="roomNumber">' +
+        patient.roomNumber +
+        "</div></td>" +
+        "<td>" +
+        '<div class="button_box">' +
+        '<form action="/cancle" method="POST">' +
+        '<input type="hidden" name="id" value="' +
+        patient.id +
+        '" />' +
+        '<button type="submit" id="cancle">해제</button>' +
+        "</form>" +
+        '<form action="/complete" method="POST">' +
+        '<input type="hidden" name="id" value="' +
+        patient.id +
+        '" />' +
+        '<button type="submit" id="complete">완료</button>' +
+        "</form>" +
+        "</div>" +
+        "</td>";
       row.innerHTML = html;
       activePatients.appendChild(row);
     } else {
-      html += `
-              <td>
-                <div class="button_box">
-                  <form action="/treatment" method="post">
-                    <input type="hidden" name="id" value="${patient.id}" />
-                    <input type="hidden" name="roomNumber" value="1" />
-                    <button type="submit" id="roomNumberSelect" >1</button>
-                  </form>
-                  <form action="/treatment" method="post">
-                    <input type="hidden" name="id" value="${patient.id}" />
-                    <input type="hidden" name="roomNumber" value="2" />
-                    <button type="submit" id="roomNumberSelect">2</button>
-                  </form>
-                </div>
-              </td>
-              <td>
-                <form action="/waitlist" method="post">
-                  <input type="hidden" name="id" value="${patient.id}" />
-                  <button type="submit">보류</button>
-                </form>
-              </td>
-            `;
+      html +=
+        "<td>" +
+        '<div class="button_box">' +
+        '<form action="/treatment" method="post">' +
+        '<input type="hidden" name="id" value="' +
+        patient.id +
+        '" />' +
+        '<input type="hidden" name="roomNumber" value="1" />' +
+        '<button type="submit" id="roomNumberSelect">1</button>' +
+        "</form>" +
+        '<form action="/treatment" method="post">' +
+        '<input type="hidden" name="id" value="' +
+        patient.id +
+        '" />' +
+        '<input type="hidden" name="roomNumber" value="2" />' +
+        '<button type="submit" id="roomNumberSelect">2</button>' +
+        "</form>" +
+        "</div>" +
+        "</td>" +
+        "<td>" +
+        '<form action="/waitlist" method="post">' +
+        '<input type="hidden" name="id" value="' +
+        patient.id +
+        '" />' +
+        '<button type="submit">보류</button>' +
+        "</form>" +
+        "</td>";
       row.innerHTML = html;
       tableBody.appendChild(row);
     }
 
     if (patient.memo && patient.memo.length > 0) {
-      const memoRow = document.createElement("tr");
+      var memoRow = document.createElement("tr");
+      if (patient.inTreatment && patient.roomNumber == 1) {
+        memoRow.style.backgroundColor = "seashell";
+      }
       memoRow.classList.add("memo-row");
-      memoRow.innerHTML = `<td></td><td>↳</td><td colspan="3">${patient.memo}</td>`;
+      memoRow.innerHTML =
+        '<td></td><td>↳</td><td colspan="3">' + patient.memo + "</td>";
       (patient.inTreatment ? activePatients : tableBody).appendChild(memoRow);
     }
-  });
+  }
 
   initializeDraggableRows();
 }
@@ -225,35 +367,44 @@ function fetchPatients() {
   xhr.send();
 }
 
-function toggleRoomButton() {
-  const input = document.querySelector(".patient_input");
-  const radios = document.getElementsByName("room");
-  const stored = localStorage.getItem("room");
-  if (stored) {
-    document.querySelector(
-      `input[name="room"][value="${stored}"]`
-    ).checked = true;
-    input.style.display = stored === "dr" ? "none" : "block";
-  }
+var radios = document.getElementsByName("room");
+var input = document.querySelector(".patient_input");
+var stored = localStorage.getItem("room");
 
-  Array.from(radios).forEach((rb) => {
-    rb.addEventListener("change", () => {
+if (stored) {
+  document.querySelector(
+    'input[name="room"][value="' + stored + '"]'
+  ).checked = true;
+  input.style.display = stored === "dr" ? "none" : "block";
+}
+
+for (var i = 0; i < radios.length; i++) {
+  (function (rb) {
+    rb.addEventListener("change", function () {
       localStorage.setItem("room", rb.value);
       input.style.display = rb.value === "dr" ? "none" : "block";
     });
-  });
+  })(radios[i]);
 }
 
 function initialsHTML() {
   const options = ["★", "🅚", "🅒", "E", "D", "P", "R", "↗", "✚", "외출"];
   const wrapper = document.querySelector(".pastel-wrapper");
   if (!wrapper) return;
-  options.forEach((opt, i) => {
-    const div = document.createElement("div");
-    div.className = `pastel pastel${i}`;
-    div.innerHTML = `<label><input type="checkbox" name="initial" value="${i}_${opt}" /> ${opt}</label>`;
+  for (var i = 0; i < options.length; i++) {
+    var opt = options[i];
+    var div = document.createElement("div");
+    div.className = "pastel pastel" + i;
+    div.innerHTML =
+      "<label><input type='checkbox' name='initial' value='" +
+      i +
+      "_" +
+      opt +
+      "' /> " +
+      opt +
+      "</label>";
     wrapper.appendChild(div);
-  });
+  }
 }
 
 function fetchWaitlist() {
@@ -281,30 +432,41 @@ function updateWaitlistTable(waitlist) {
     return;
   }
 
-  waitlist.forEach((patient) => {
-    const initials = patient.initial ? patient.initial.split(", ") : [];
-    const row = document.createElement("tr");
+  for (var i = 0; i < waitlist.length; i++) {
+    var patient = waitlist[i];
+    var initials = patient.initial ? patient.initial.split(", ") : [];
+    var row = document.createElement("tr");
 
-    row.innerHTML = `
-      <td>${patient.chartNumber}</td>
-      <td>${patient.name}</td>
-      <td><div class="pastel-wrapper">${makePastelHTML(initials)}</div></td>
-      <td>${patient.memo}</td>
-      <td>
-        <form action="/upload" method="post">
-          <input type="hidden" name="id" value="${patient.id}" />
-          <button type="submit">복귀</button>
-        </form>
-      </td>
-    `;
+    var html =
+      "<td>" +
+      patient.chartNumber +
+      "</td>" +
+      "<td>" +
+      patient.name +
+      "</td>" +
+      "<td><div class='pastel-wrapper'>" +
+      makePastelHTML(initials) +
+      "</div></td>" +
+      "<td>" +
+      patient.memo +
+      "</td>" +
+      "<td>" +
+      "<form action='/upload' method='post'>" +
+      "<input type='hidden' name='id' value='" +
+      patient.id +
+      "' />" +
+      "<button type='submit'>복귀</button>" +
+      "</form>" +
+      "</td>";
 
+    row.innerHTML = html;
     tableBody.appendChild(row);
-  });
+  }
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+  initializeDraggableRows();
   initialsHTML();
-  toggleRoomButton();
   fetchPatients();
   fetchWaitlist(); // ← 여기 추가
   setInterval(fetchPatients, 5000);
