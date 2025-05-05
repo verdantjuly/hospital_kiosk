@@ -1,15 +1,20 @@
+
 body {
-  background: linear-gradient(#2c0b10, rgb(79, 54, 58));
+  background: #509bf1;
   font-family: Arial, sans-serif;
   padding: 50px;
-  color: white;
+  color: black;
   height: 100vh;
 }
 
 h2 {
-  color: #fffdfd;
-  border-bottom: 1px solid white;
+  color: black;
   padding: 5px;
+  margin: 0px 0px 10px 0px;
+}
+
+.column {
+  margin-bottom: 30px;
 }
 
 label {
@@ -57,17 +62,19 @@ table {
 table,
 th,
 td {
-  border: 1px solid #2d0101;
+  border: 2px solid #509bf1;
+  color: black;
 }
 
 th {
-  background-color: #fafafa;
-  color: #210000;
+  background-color: white;
+  font-size: 16px;
+  color: black;
 }
 
 th,
 td {
-  padding: 8px;
+  padding: 10px;
   text-align: left;
   font-weight: bold;
 }
@@ -85,49 +92,66 @@ td {
 }
 
 .pastel0 {
-  background-color: #d788ff;
+  background-color: #cd68ff;
 }
 .pastel1 {
-  background-color: #a0a0a0;
+  background-color: #919191;
 }
 .pastel2 {
   background-color: #ffffff;
 }
 .pastel3 {
-  background-color: #ff4949;
+  background-color: #e43636;
 }
 .pastel4 {
-  background-color: #528af9;
+  background-color: #2d4f94;
 }
 .pastel5 {
-  background-color: #5ecf45;
+  background-color: #5fff3b;
 }
 .pastel6 {
-  background-color: #f59a54;
+  background-color: #ff6f00;
 }
 .pastel7 {
-  background-color: #96d095;
+  background-color: rgb(0, 247, 255);
 }
 .pastel8 {
   background-color: #ffeb38;
 }
 .pastel9 {
-  background-color: #f2b0f5;
+  background-color: #f8c0ff;
 }
 
 button {
-  border-radius: 10px;
-  padding: 10px;
+  border-radius: 5px;
+  padding: 15px;
   width: 100%;
   background-color: white;
   font-weight: bold;
-  border: none;
+  font-size: 18px;
+  border: 2px solid black;
 }
 
 input[type="text"] {
   width: 100%;
-  padding: 5px;
+  padding: 15px;
+  margin-top: 10px;
   margin-bottom: 10px;
+  background: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.patient_input {
+  padding: 30px;
+  background-color: #00003a;
+  border-radius: 5px;
+  color: white;
+}
+.patient_input h2 {
+  color: white;
 }
 
 .patient_input_inner {
@@ -150,37 +174,39 @@ input[type="text"] {
 
 #patient_submit {
   margin-top: 10px;
-  background-color: #320101;
+  background-color: black;
   color: white;
-  border: white solid 1px;
-  border-radius: 10px;
+  border: 2px solid white;
+  border-radius: 5px;
 }
 
 #waitlist_button {
-  border-radius: 10px;
-  background-color: white;
+  border-radius: 5px;
 }
 
 #roomNumber {
   text-align: center;
   padding: 5px;
-  background-color: #1b0505;
   border-radius: 20px;
-  color: white;
+  color: black;
+  font-size: 32px;
 }
 
 #cancle {
-  background-color: #5e0101;
+  background-color: #d32a2a;
   color: white;
+  cursor: pointer;
 }
 
 #complete {
-  background-color: #000;
+  background-color: #000000;
   color: white;
+  cursor: pointer;
 }
 
 #roomNumberSelect {
-  border: 3px solid #540d0d;
+  background-color: white;
+  color: black;
 }
 
 button:hover {
@@ -206,4 +232,13 @@ button:hover {
 .selected {
   background-color: white;
   color: black;
+}
+
+.top_navigation {
+  margin-bottom: 30px;
+  font-size: 18px;
+}
+
+.top_navigation input[type="radio"] {
+  font-size: 24px;
 }

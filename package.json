@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "build": "node app.js"
+  },
   "dependencies": {
     "express": "^5.1.0",
     "sqlite3": "^5.1.7"
