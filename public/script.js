@@ -290,13 +290,13 @@ function updatePatientTable(patients) {
         '<input type="hidden" name="id" value="' +
         patient.id +
         '" />' +
-        '<button type="submit" id="cancle">↓</button>' +
+        '<button type="submit" id="cancle">⬇</button>' +
         "</form>" +
         '<form action="/complete" method="POST">' +
         '<input type="hidden" name="id" value="' +
         patient.id +
         '" />' +
-        '<button type="submit" id="complete">✓</button>' +
+        '<button type="submit" id="complete">✔</button>' +
         "</form>" +
         "</div>" +
         "</td>";
@@ -340,8 +340,7 @@ function updatePatientTable(patients) {
         memoRow.style.backgroundColor = "seashell";
       }
       memoRow.classList.add("memo-row");
-      memoRow.innerHTML =
-        '<td></td><td>↳</td><td colspan="3">' + patient.memo + "</td>";
+      memoRow.innerHTML = '<td colspan="5"> ➥ ' + patient.memo + "</td>";
       (patient.inTreatment ? activePatients : tableBody).appendChild(memoRow);
     }
   }
@@ -470,7 +469,7 @@ function updateWaitlistTable(waitlist) {
       "<input type='hidden' name='id' value='" +
       patient.id +
       "' />" +
-      "<button type='submit'>복귀</button>" +
+      "<button type='submit'>⬆</button>" +
       "</form>" +
       "</td>";
 
