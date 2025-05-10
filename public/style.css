@@ -1,6 +1,6 @@
 
 body {
-  background: #509bf1;
+  background: #4c6a8d;
   font-family: Arial, sans-serif;
   padding: 50px;
   color: black;
@@ -62,7 +62,7 @@ table {
 table,
 th,
 td {
-  border: 2px solid #509bf1;
+  border: 2px solid #4c6a8d;
   color: black;
 }
 
@@ -146,7 +146,7 @@ input[type="text"] {
 
 .patient_input {
   padding: 30px;
-  background-color: #00003a;
+  background-color: #1b2835;
   border-radius: 5px;
   color: white;
 }
@@ -213,6 +213,8 @@ button:hover {
   scale: 1.05;
 }
 
+
+
 .sortable-ghost {
   opacity: 0.3;
 }
@@ -221,6 +223,11 @@ button:hover {
   opacity: 0.6;
   background-color: #f0f8ff;
   border: 2px dashed #4a90e2;
+}
+
+#sortable tr td:nth-child(1),
+#sortable tr td:nth-child(2) {
+  font-size: 32px;
 }
 
 #sortable tr {
