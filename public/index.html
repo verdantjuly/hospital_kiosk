@@ -96,7 +96,13 @@
         <form class="patient_input_inner" action="/submit" method="post">
           <div class="patient_input_info">
             <label
-              >차트번호 <input type="text" name="chartNumber" required /></label
+              >차트번호
+              <input
+                type="text"
+                name="chartNumber"
+                pattern="^\d{2}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01]).*"
+                title="생년월일"
+                required /></label
             ><br />
             <label>이름 <input type="text" name="name" required /></label><br />
           </div>

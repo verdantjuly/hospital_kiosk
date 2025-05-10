@@ -53,6 +53,7 @@ app.get("/api/waitlist", (req, res) => {
 
 app.post("/submit", (req, res) => {
   const { chartNumber, name, memo } = req.body;
+
   let initial = req.body.initial;
   const initialStr = Array.isArray(initial)
     ? initial.join(", ")
