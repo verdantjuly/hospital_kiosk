@@ -10,20 +10,18 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="top_navigation">
-    <label>
-      <input type="radio" name="room" value="desk"  />
-      데스크
-    </label>
-    <label>
-      <input type="radio" name="room" value="dr"  />
-      진료실
-    </label
-    >
-  </div>
     <div class="container">
       <div>
-        
+        <div class="top_navigation">
+          <label>
+            <input type="radio" name="room" value="desk" />
+            데스크
+          </label>
+          <label>
+            <input type="radio" name="room" value="dr" />
+            진료실
+          </label>
+        </div>
         <div class="column">
           <h2>진료 중인 환자</h2>
           <table>
@@ -40,7 +38,7 @@
                 <th>이름</th>
                 <th>이니셜</th>
                 <th>진료실</th>
-                <th>액션</th>
+                <th>진료</th>
               </tr>
             </thead>
             <tbody id="activePatients"></tbody>
@@ -51,10 +49,10 @@
           <table>
             <colgroup>
               <col width="15%" />
-                <col width="15%" />
-                <col width="30%" />
-                <col width="15%" />
-                <col width="15%" />
+              <col width="15%" />
+              <col width="30%" />
+              <col width="15%" />
+              <col width="15%" />
             </colgroup>
             <thead>
               <tr>
@@ -62,7 +60,7 @@
                 <th>이름</th>
                 <th>이니셜</th>
                 <th>진료실</th>
-                <th>액션</th>
+                <th>보류</th>
               </tr>
             </thead>
             <tbody id="sortable">
@@ -70,7 +68,7 @@
             </tbody>
           </table>
         </div>
-        <div class="column" id="waitlistSection" style="display: none;">
+        <div class="column" id="waitlistSection" style="display: none">
           <h2>보류자 목록</h2>
           <table>
             <colgroup>
@@ -87,30 +85,30 @@
                 <th>이니셜</th>
                 <th>메모</th>
                 <th>복귀</th>
-                
               </tr>
             </thead>
             <tbody id="waitlistTableBody"></tbody>
           </table>
         </div>
-        
       </div>
       <div class="patient_input">
-        <h2>환자 정보 입력</h2>
+        <img src="./logo.png" />
         <form class="patient_input_inner" action="/submit" method="post">
           <div class="patient_input_info">
             <label
               >차트번호 <input type="text" name="chartNumber" required /></label
             ><br />
             <label>이름 <input type="text" name="name" required /></label><br />
-            
           </div>
           <div class="patient_input_initial">
+            <br />
             <label>이니셜</label>
-            <div class="pastel-wrapper">
-            </div>
+            <br />
+            <br />
+            <div class="pastel-wrapper"></div>
+            <br />
             <label> 메모</label>
-            <input name="memo" type="text"/>
+            <input name="memo" type="text" />
             <button type="submit" id="patient_submit">제출</button>
           </div>
         </form>

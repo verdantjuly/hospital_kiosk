@@ -254,9 +254,9 @@ function updatePatientTable(patients) {
   if (patients.length === 0) {
     tableBody.innerHTML =
       "<tr><td colspan='5'>진료 예정인 환자가 없습니다.</td></tr>";
+
     return;
   }
-
   for (var i = 0; i < patients.length; i++) {
     var patient = patients[i];
     var initials = patient.initial ? patient.initial.split(", ") : [];
@@ -274,7 +274,7 @@ function updatePatientTable(patients) {
       "<td>" +
       patient.name +
       "</td>" +
-      '<td><div class="pastel-wrapper">' +
+      "<td><div>" +
       makePastelHTML(initials) +
       "</div></td>";
 
@@ -290,13 +290,13 @@ function updatePatientTable(patients) {
         '<input type="hidden" name="id" value="' +
         patient.id +
         '" />' +
-        '<button type="submit" id="cancle">해제</button>' +
+        '<button type="submit" id="cancle">↓</button>' +
         "</form>" +
         '<form action="/complete" method="POST">' +
         '<input type="hidden" name="id" value="' +
         patient.id +
         '" />' +
-        '<button type="submit" id="complete">완료</button>' +
+        '<button type="submit" id="complete">✓</button>' +
         "</form>" +
         "</div>" +
         "</td>";
@@ -327,7 +327,7 @@ function updatePatientTable(patients) {
         '<input type="hidden" name="id" value="' +
         patient.id +
         '" />' +
-        '<button type="submit">보류</button>' +
+        '<button type="submit">♺</button>' +
         "</form>" +
         "</td>";
       row.innerHTML = html;
@@ -375,6 +375,7 @@ if (stored) {
   document.querySelector(
     'input[name="room"][value="' + stored + '"]'
   ).checked = true;
+
   input.style.display = stored === "dr" ? "none" : "block";
 }
 
@@ -392,6 +393,19 @@ function initialsHTML() {
   const wrapper = document.querySelector(".pastel-wrapper");
   if (!wrapper) return;
   for (var i = 0; i < options.length; i++) {
+    var title = document.createElement("div");
+    title.className = "initial_title";
+    if (i == 0) {
+      title.innerText = "원장님";
+      wrapper.appendChild(title);
+    } else if (i == 3) {
+      title.innerText = "상태";
+      wrapper.appendChild(title);
+    } else if (i == 7) {
+      title.innerText = "기타";
+      wrapper.appendChild(title);
+    }
+
     var opt = options[i];
     var div = document.createElement("div");
     div.className = "pastel pastel" + i;
@@ -403,6 +417,7 @@ function initialsHTML() {
       "' /> " +
       opt +
       "</label>";
+
     wrapper.appendChild(div);
   }
 }

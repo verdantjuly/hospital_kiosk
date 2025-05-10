@@ -1,8 +1,7 @@
-
 body {
-  background: #4c6a8d;
+  background: #a3b9d2;
   font-family: Arial, sans-serif;
-  padding: 50px;
+  padding: 20px;
   color: black;
   height: 100vh;
 }
@@ -55,7 +54,7 @@ label {
 table {
   width: 100%;
   border-collapse: collapse;
-  background-color: rgba(255, 232, 232, 0.723);
+  background-color: rgba(224, 230, 232, 0.723);
   color: rgb(55, 0, 0);
 }
 
@@ -74,18 +73,21 @@ th {
 
 th,
 td {
-  padding: 10px;
+  padding: 5px 7px;
   text-align: left;
   font-weight: bold;
 }
 
 .pastel-wrapper {
-  margin: 10px 0;
+  border: none;
+  border-radius: 10px;
+  background-color: #c6e5ff2a;
+  padding: 10px;
 }
 
 .pastel {
   display: inline-block;
-  margin: 5px;
+  margin: 3px;
   padding: 10px;
   color: #000000;
   border-radius: 20px;
@@ -124,7 +126,7 @@ td {
 
 button {
   border-radius: 5px;
-  padding: 15px;
+  padding: 7px 15px;
   width: 100%;
   background-color: white;
   font-weight: bold;
@@ -145,7 +147,8 @@ input[type="text"] {
 }
 
 .patient_input {
-  padding: 30px;
+  min-width: 255px;
+  padding: 20px;
   background-color: #1b2835;
   border-radius: 5px;
   color: white;
@@ -213,8 +216,6 @@ button:hover {
   scale: 1.05;
 }
 
-
-
 .sortable-ghost {
   opacity: 0.3;
 }
@@ -225,9 +226,18 @@ button:hover {
   border: 2px dashed #4a90e2;
 }
 
-#sortable tr td:nth-child(1),
-#sortable tr td:nth-child(2) {
-  font-size: 32px;
+tr td:nth-child(1),
+tr td:nth-child(2) {
+  font-size: 24px;
+}
+tr td:nth-child(1) {
+  min-width: 90px;
+}
+tr td:nth-child(2) {
+  min-width: 65px;
+}
+tr td:nth-child(3) {
+  min-width: 80px;
 }
 
 #sortable tr {
@@ -248,4 +258,15 @@ button:hover {
 
 .top_navigation input[type="radio"] {
   font-size: 24px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+.initial_title {
+  padding: 10px 0px;
+}
+img {
+  padding: 20px 20px 40px 20px;
+  width: 80%;
 }
