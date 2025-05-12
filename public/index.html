@@ -21,6 +21,9 @@
             <input type="radio" name="room" value="dr" />
             진료실
           </label>
+          <button id="initial_control" onclick="openModal()">
+            이니셜 관리
+          </button>
         </div>
         <div class="column">
           <h2>진료 중인 환자</h2>
@@ -36,7 +39,7 @@
               <tr>
                 <th>차트번호</th>
                 <th>이름</th>
-                <th>이니셜</th>
+                <th>이니셜 및 메모</th>
                 <th>진료실</th>
                 <th>진료</th>
               </tr>
@@ -48,17 +51,19 @@
           <h2>진료 예정 환자</h2>
           <table>
             <colgroup>
+              <col width="5%" />
               <col width="15%" />
               <col width="15%" />
               <col width="30%" />
-              <col width="15%" />
-              <col width="15%" />
+              <col width="10%" />
+              <col width="10%" />
             </colgroup>
             <thead>
               <tr>
+                <th>순서</th>
                 <th>차트번호</th>
                 <th>이름</th>
-                <th>이니셜</th>
+                <th>이니셜 및 메모</th>
                 <th>진료실</th>
                 <th>보류</th>
               </tr>
@@ -74,16 +79,14 @@
             <colgroup>
               <col width="15%" />
               <col width="15%" />
-              <col width="30%" />
-              <col width="20%" />
-              <col width="20%" />
+              <col width="60%" />
+              <col width="10%" />
             </colgroup>
             <thead>
               <tr>
                 <th>차트번호</th>
                 <th>이름</th>
-                <th>이니셜</th>
-                <th>메모</th>
+                <th>이니셜 및 메모</th>
                 <th>복귀</th>
               </tr>
             </thead>
@@ -92,7 +95,6 @@
         </div>
       </div>
       <div class="patient_input">
-        <img src="./logo.png" />
         <form class="patient_input_inner" action="/submit" method="post">
           <div class="patient_input_info">
             <label
@@ -121,6 +123,50 @@
         <button id="waitlist_button">보류자 목록</button>
       </div>
     </div>
+    <div
+      id="initialsModal"
+      style="
+        display: none;
+        position: fixed;
+        top: 50px;
+        left: 50%;
+        width: 400px;
+        margin-left: -200px;
+        background: black;
+        color: white;
+        border: 1px solid #888;
+        border-radius: 20px;
+        padding: 20px;
+        z-index: 1000;
+      "
+    >
+      <div style="text-align: right">
+        <a
+          href="#"
+          style="color: red; text-decoration: none"
+          onclick="closeModal()"
+          >✖︎</a
+        >
+      </div>
+      <h3>✗ 이니셜 삭제</h3>
+      <ul id="initialList" style="list-style: none; padding: 0"></ul>
+      <hr />
+      <h3>❐ 이니셜 추가</h3>
+      <form onsubmit="submitInitial(); return false;">
+        <label>이니셜 <input type="text" id="symbol" /></label><br />
+        <label>색상 (예: #ff0000) <input type="text" id="color" /></label><br />
+        <label>카테고리</label><br /><br />
+        <label
+          ><input type="radio" name="category" value="원장님" /> 원장님</label
+        ><br />
+        <label><input type="radio" name="category" value="상태" /> 상태</label
+        ><br />
+        <label><input type="radio" name="category" value="기타" /> 기타</label
+        ><br /><br />
+        <button id="add_button" type="submit">추가</button>
+      </form>
+    </div>
     <script src="script.js"></script>
+    <div id="modalOverlay"></div>
   </body>
 </html>

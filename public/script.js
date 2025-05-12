@@ -89,83 +89,57 @@ function closestPolyfill(element, selector) {
   }
   return null;
 }
-let isDragging = false;
-let draggedRow = null;
-let draggedMemoRow = null;
 
-function onDragStart(event) {
-  draggedRow = event.target;
-  draggedRow.className += " dragging"; // Using className for IE8 compatibility
-
-  // Find memo row
-  draggedMemoRow = draggedRow.nextElementSibling;
-  if (draggedMemoRow && !draggedMemoRow.className.match("memo-row")) {
-    draggedMemoRow = null;
-  }
-
-  event.dataTransfer.effectAllowed = "move";
-
-  // Re-arrange memo row immediately below dragged row
-  if (draggedMemoRow) {
-    draggedRow.parentNode.insertBefore(draggedMemoRow, draggedRow.nextSibling);
-  }
+// Creating a compatible XHR object for IE8
+function createXHR() {
+  return window.XMLHttpRequest
+    ? new XMLHttpRequest()
+    : new ActiveXObject("Microsoft.XMLHTTP");
 }
 
-function onDragEnd() {
-  if (draggedRow)
-    draggedRow.className = draggedRow.className.replace(" dragging", ""); // Remove dragging class
+var initialMap = {}; // 이니셜 ID → { symbol, color }
 
-  draggedRow = null;
-  draggedMemoRow = null;
-}
-
-function onDragOver(event) {
-  event.preventDefault();
-  const targetRow = event.target.closest("tr");
-
-  if (
-    (targetRow && targetRow.className.match("memo-row")) ||
-    targetRow === draggedRow
-  )
-    return;
-
-  targetRow.className += " drag-over"; // Using className for IE8 compatibility
-}
-
-function onDrop(event) {
-  event.preventDefault();
-  const targetRow = event.target.closest("tr");
-
-  if (
-    !targetRow ||
-    targetRow.className.match("memo-row") ||
-    targetRow === draggedRow
-  )
-    return;
-
-  const rows = Array.prototype.slice
-    .call(document.querySelectorAll("#sortable tr"))
-    .filter(function (row) {
-      return !row.className.match("memo-row");
-    });
-
-  const draggedIndex = rows.indexOf(draggedRow);
-  const targetIndex = rows.indexOf(targetRow);
-
-  if (draggedIndex < targetIndex) {
-    targetRow.parentNode.insertBefore(draggedRow, targetRow.nextSibling);
-    if (draggedMemoRow) {
-      targetRow.parentNode.insertBefore(draggedMemoRow, draggedRow.nextSibling);
+function loadInitialsMap(callback) {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/api/initials", true);
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      try {
+        var data = JSON.parse(xhr.responseText);
+        initialMap = {}; // 초기화
+        for (var i = 0; i < data.length; i++) {
+          var item = data[i];
+          initialMap[item.id] = item;
+        }
+        if (callback) callback();
+      } catch (e) {
+        console.error("이니셜 로딩 오류:", e);
+      }
     }
-  } else {
-    targetRow.parentNode.insertBefore(draggedRow, targetRow);
-    if (draggedMemoRow) {
-      targetRow.parentNode.insertBefore(draggedMemoRow, draggedRow.nextSibling);
-    }
+  };
+  xhr.send();
+}
+function initialSymbolHTML(initials) {
+  if (!initials || initials.length === 0) return "";
+
+  var html = "";
+  for (var i = 0; i < initials.length; i++) {
+    var item = initials[i];
+    var id = typeof item === "string" ? item : item.id;
+
+    var data = initialMap[id];
+    var symbol = data ? data.symbol : item.symbol || "？";
+    var color = data ? data.color : item.color || "#ccc";
+
+    html +=
+      '<div class="pastel" style="background-color:' +
+      color +
+      ';">' +
+      symbol +
+      "</div>";
   }
 
-  updateRowOrder();
-  targetRow.className = targetRow.className.replace(" drag-over", ""); // Remove drag-over class
+  return html;
 }
 function updateRowOrder() {
   const rows = Array.prototype.slice.call(
@@ -184,67 +158,6 @@ function updateRowOrder() {
   xhr.send(JSON.stringify(updates));
 }
 
-// Creating a compatible XHR object for IE8
-function createXHR() {
-  return window.XMLHttpRequest
-    ? new XMLHttpRequest()
-    : new ActiveXObject("Microsoft.XMLHTTP");
-}
-
-function initializeDraggableRows() {
-  var rows = document.querySelectorAll("#sortable tr");
-  for (var i = 0; i < rows.length; i++) {
-    var row = rows[i];
-
-    if (row.className.match("memo-row")) continue;
-
-    row.setAttribute("draggable", true);
-    row.attachEvent("ondragstart", onDragStart);
-    row.attachEvent("ondragend", onDragEnd);
-    row.attachEvent("ondragover", onDragOver);
-    row.attachEvent("ondrop", onDrop);
-  }
-}
-
-function setRowDraggable(row) {
-  if (row.classList.contains("memo-row")) return;
-
-  row.setAttribute("draggable", true);
-  row.addEventListener("dragstart", onDragStart);
-  row.addEventListener("dragend", onDragEnd);
-  row.addEventListener("dragover", onDragOver);
-  row.addEventListener("drop", onDrop);
-}
-
-function initializeDraggableRows() {
-  var rows = document.querySelectorAll("#sortable tr");
-
-  for (var i = 0; i < rows.length; i++) {
-    setRowDraggable(rows[i]);
-  }
-}
-
-function createXHR() {
-  return window.XMLHttpRequest
-    ? new XMLHttpRequest()
-    : new ActiveXObject("Microsoft.XMLHTTP");
-}
-
-function makePastelHTML(initials) {
-  if (!initials || initials.length === 0) return "";
-
-  var html = "";
-  for (var i = 0; i < initials.length; i++) {
-    var item = initials[i];
-    var parts = item.split("_");
-    var idx = parts[0];
-    var symbol = parts[1];
-    html += '<div class="pastel pastel' + idx + '">' + symbol + "</div>";
-  }
-
-  return html;
-}
-
 function updatePatientTable(patients) {
   const tableBody = document.getElementById("sortable");
   const activePatients = document.getElementById("activePatients");
@@ -253,13 +166,13 @@ function updatePatientTable(patients) {
 
   if (patients.length === 0) {
     tableBody.innerHTML =
-      "<tr><td colspan='5'>진료 예정인 환자가 없습니다.</td></tr>";
-
+      "<tr><td colspan='6'>진료 예정인 환자가 없습니다.</td></tr>";
     return;
   }
+
   for (var i = 0; i < patients.length; i++) {
     var patient = patients[i];
-    var initials = patient.initial ? patient.initial.split(", ") : [];
+    var initials = patient.initial;
     var row = document.createElement("tr");
     row.setAttribute("data-id", patient.id);
 
@@ -269,18 +182,43 @@ function updatePatientTable(patients) {
 
     var html =
       "<td>" +
-      patient.chartNumber +
+      "<div class = 'order_box'>" +
+      '<button id="order_button" type="button" onclick="moveRowUp(this)">▲</button>' +
+      '<button id="order_button" type="button" onclick="moveRowDown(this)">▼</button>' +
+      "</div>" +
+      "</td>" +
+      "<td>" +
+      patient.chartNumber.slice(0, 6) +
+      '<span id="chart_number">' +
+      patient.chartNumber.slice(6) +
+      "</span>" +
       "</td>" +
       "<td>" +
       patient.name +
       "</td>" +
       "<td><div>" +
-      makePastelHTML(initials) +
+      initialSymbolHTML(initials) +
+      (patient.memo
+        ? "<div class='pastel' id= 'memo'>" + patient.memo + "</div>"
+        : "") +
       "</div></td>";
 
     if (patient.inTreatment) {
-      row.setAttribute("draggable", "true");
-      html +=
+      html =
+        "<td>" +
+        patient.chartNumber.slice(0, 6) +
+        '<span id="chart_number">' +
+        patient.chartNumber.slice(6) +
+        "</td>" +
+        "<td>" +
+        patient.name +
+        "</td>" +
+        "<td><div>" +
+        initialSymbolHTML(initials) +
+        (patient.memo
+          ? "<div class='pastel' id= 'memo'>" + patient.memo + "</div>"
+          : "") +
+        "</div></td>" +
         '<td><div id="roomNumber">' +
         patient.roomNumber +
         "</div></td>" +
@@ -333,24 +271,10 @@ function updatePatientTable(patients) {
       row.innerHTML = html;
       tableBody.appendChild(row);
     }
-
-    if (patient.memo && patient.memo.length > 0) {
-      var memoRow = document.createElement("tr");
-      if (patient.inTreatment && patient.roomNumber == 1) {
-        memoRow.style.backgroundColor = "seashell";
-      }
-      memoRow.classList.add("memo-row");
-      memoRow.innerHTML = '<td colspan="5"> ➥ ' + patient.memo + "</td>";
-      (patient.inTreatment ? activePatients : tableBody).appendChild(memoRow);
-    }
   }
-
-  initializeDraggableRows();
 }
 
 function fetchPatients() {
-  if (isDragging) return; // 드래그 중이면 UI 갱신하지 않음
-
   const xhr = createXHR();
   xhr.open("GET", "/api/patients?" + new Date().getTime(), true);
   xhr.onreadystatechange = function () {
@@ -388,37 +312,65 @@ for (var i = 0; i < radios.length; i++) {
 }
 
 function initialsHTML() {
-  const options = ["★", "🅚", "🅒", "E", "D", "P", "R", "↗", "✚", "외출"];
-  const wrapper = document.querySelector(".pastel-wrapper");
-  if (!wrapper) return;
-  for (var i = 0; i < options.length; i++) {
-    var title = document.createElement("div");
-    title.className = "initial_title";
-    if (i == 0) {
-      title.innerText = "원장님";
-      wrapper.appendChild(title);
-    } else if (i == 3) {
-      title.innerText = "상태";
-      wrapper.appendChild(title);
-    } else if (i == 7) {
-      title.innerText = "기타";
-      wrapper.appendChild(title);
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/api/initials", true);
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      var wrapper = document.querySelector(".pastel-wrapper");
+      if (!wrapper) return;
+      wrapper.innerHTML = "";
+
+      var data;
+      try {
+        data = eval("(" + xhr.responseText + ")");
+      } catch (e) {
+        alert("이니셜 JSON 파싱 실패");
+        return;
+      }
+
+      // 카테고리별 그룹
+      var categories = {
+        원장님: [],
+        상태: [],
+        기타: [],
+      };
+
+      for (var i = 0; i < data.length; i++) {
+        var item = data[i];
+        if (categories[item.category]) {
+          categories[item.category].push(item);
+        } else {
+          categories["기타"].push(item); // fallback
+        }
+      }
+
+      for (var key in categories) {
+        // 카테고리 제목
+        var title = document.createElement("div");
+        title.className = "initial_title";
+        title.innerText = key;
+        wrapper.appendChild(title);
+
+        var list = categories[key];
+        for (var j = 0; j < list.length; j++) {
+          var item = list[j];
+          var div = document.createElement("div");
+          div.className = "pastel";
+          div.style.backgroundColor = item.color || "#ccc";
+
+          div.innerHTML =
+            "<label><input type='checkbox' name='initial' value='" +
+            item.id +
+            "' /> " +
+            item.symbol +
+            "</label>";
+
+          wrapper.appendChild(div);
+        }
+      }
     }
-
-    var opt = options[i];
-    var div = document.createElement("div");
-    div.className = "pastel pastel" + i;
-    div.innerHTML =
-      "<label><input type='checkbox' name='initial' value='" +
-      i +
-      "_" +
-      opt +
-      "' /> " +
-      opt +
-      "</label>";
-
-    wrapper.appendChild(div);
-  }
+  };
+  xhr.send();
 }
 
 function fetchWaitlist() {
@@ -448,22 +400,25 @@ function updateWaitlistTable(waitlist) {
 
   for (var i = 0; i < waitlist.length; i++) {
     var patient = waitlist[i];
-    var initials = patient.initial ? patient.initial.split(", ") : [];
+    var initial = patient.initial;
     var row = document.createElement("tr");
 
     var html =
       "<td>" +
-      patient.chartNumber +
+      patient.chartNumber.slice(0, 6) +
+      '<span id="chart_number">' +
+      patient.chartNumber.slice(6) +
+      "</span>" +
       "</td>" +
       "<td>" +
       patient.name +
       "</td>" +
-      "<td><div class='pastel-wrapper'>" +
-      makePastelHTML(initials) +
+      "<td><div class='pastel-wrapper2'>" +
+      initialSymbolHTML(initial) +
+      (patient.memo
+        ? "<div class='pastel' id= 'memo'>" + patient.memo + "</div>"
+        : "") +
       "</div></td>" +
-      "<td>" +
-      patient.memo +
-      "</td>" +
       "<td>" +
       "<form action='/upload' method='post'>" +
       "<input type='hidden' name='id' value='" +
@@ -479,12 +434,12 @@ function updateWaitlistTable(waitlist) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  initializeDraggableRows();
+  loadInitialsMap();
   initialsHTML();
   fetchPatients();
-  fetchWaitlist(); // ← 여기 추가
-  setInterval(fetchPatients, 5000);
-  setInterval(fetchWaitlist, 5000); // ← 자동 갱신도 원할 경우
+  fetchWaitlist();
+  setInterval(fetchPatients, 500);
+  setInterval(fetchWaitlist, 500);
   document
     .getElementById("waitlist_button")
     .addEventListener("click", function () {
@@ -495,3 +450,158 @@ document.addEventListener("DOMContentLoaded", function () {
           : "none";
     });
 });
+
+function moveRowUp(button) {
+  var row = getParentRow(button);
+  if (!row) return;
+
+  // 이전 형제 요소를 찾아서
+  var prev = row.previousElementSibling;
+  while (prev && prev.nodeType !== 1) prev = prev.previousElementSibling;
+
+  // 이전 형제가 존재하면, row를 그 위로 이동
+  if (prev) {
+    row.parentNode.insertBefore(row, prev);
+    updateRowOrder();
+  }
+}
+
+function moveRowDown(button) {
+  var row = getParentRow(button);
+  if (!row) return;
+
+  // 다음 형제 요소를 찾아서
+  var next = row.nextElementSibling;
+  while (next && next.nodeType !== 1) next = next.nextElementSibling;
+
+  // 다음 형제가 존재하면, row를 그 아래로 이동
+  if (next) {
+    row.parentNode.insertBefore(row, next.nextElementSibling || null);
+    updateRowOrder();
+  }
+}
+
+function getParentRow(elem) {
+  while (elem && elem.tagName !== "TR") {
+    elem = elem.parentNode;
+  }
+  return elem;
+}
+
+function hasClass(el, cls) {
+  return el.className && el.className.indexOf(cls) > -1;
+}
+
+function openModal() {
+  document.getElementById("initialsModal").style.display = "block";
+  document.getElementById("modalOverlay").style.display = "block"; // 배경 표시
+  loadInitials();
+}
+
+function closeModal() {
+  document.getElementById("initialsModal").style.display = "none";
+  document.getElementById("modalOverlay").style.display = "none"; // 배경 숨김
+}
+
+function submitInitial() {
+  var symbol = document.getElementById("symbol").value;
+  var color = document.getElementById("color").value;
+
+  // 선택된 라디오 값 읽기
+  var categoryRadios = document.getElementsByName("category");
+  var category = "";
+  for (var i = 0; i < categoryRadios.length; i++) {
+    if (categoryRadios[i].checked) {
+      category = categoryRadios[i].value;
+      break;
+    }
+  }
+
+  if (!category) {
+    alert("카테고리를 선택해주세요.");
+    return;
+  }
+
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", "/api/initials", true);
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 201) {
+      loadInitials();
+      document.getElementById("symbol").value = "";
+      document.getElementById("color").value = "";
+      for (var i = 0; i < categoryRadios.length; i++) {
+        categoryRadios[i].checked = false;
+      }
+    }
+  };
+  xhr.send(
+    "symbol=" +
+      encodeURIComponent(symbol) +
+      "&color=" +
+      encodeURIComponent(color) +
+      "&category=" +
+      encodeURIComponent(category)
+  );
+  initialsHTML();
+}
+
+function loadInitials() {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/api/initials", true);
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      var list = document.getElementById("initialList");
+      list.innerHTML = "";
+
+      var data;
+      try {
+        data = eval("(" + xhr.responseText + ")");
+      } catch (e) {
+        alert("JSON 파싱 오류");
+        return;
+      }
+
+      for (var i = 0; i < data.length; i++) {
+        (function (item) {
+          var div = document.createElement("div");
+          div.className = "pastel";
+          div.style.backgroundColor = item.color;
+          div.style.color = "black";
+          div.style.fontWeight = "700";
+          div.style.display = "inline-block";
+          div.style.margin = "5px";
+          div.style.padding = "5px 10px";
+          div.style.cursor = "pointer";
+          div.title = "삭제하려면 클릭하세요";
+
+          div.innerText = item.symbol;
+
+          // 삭제 기능 연결
+          div.onclick = function () {
+            if (confirm("진짜 삭제하시겠습니까?")) {
+              deleteInitial(item.id);
+            }
+          };
+
+          list.appendChild(div);
+        })(data[i]);
+      }
+    }
+  };
+  xhr.send();
+}
+
+function deleteInitial(id) {
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", "/api/initials/" + id, true);
+  xhr.setRequestHeader("X-HTTP-Method-Override", "DELETE");
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 204) {
+      loadInitials();
+    }
+  };
+  xhr.send();
+  initialsHTML();
+}
