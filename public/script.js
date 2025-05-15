@@ -119,7 +119,7 @@ function loadInitialsMap(callback) {
   };
   xhr.send();
 }
-function initialSymbolHTML(initials) {
+function initialSymbolHTML(initials, createdAt) {
   if (!initials || initials.length === 0) return "";
 
   var html = "";
@@ -139,8 +139,20 @@ function initialSymbolHTML(initials) {
       "</div>";
   }
 
+  if (createdAt) {
+    var createdTime = new Date(createdAt).getTime();
+    var now = new Date().getTime();
+    var diffMinutes = Math.floor((now - createdTime) / (1000 * 60));
+    var bombs = Math.floor(diffMinutes / 30);
+
+    for (var j = 0; j < bombs; j++) {
+      html += '<div class="pastel" style="background-color:#f88;">💣</div>';
+    }
+  }
+
   return html;
 }
+
 function updateRowOrder() {
   const rows = Array.prototype.slice.call(
     document.querySelectorAll("#sortable tr")
@@ -197,7 +209,7 @@ function updatePatientTable(patients) {
       patient.name +
       "</td>" +
       "<td><div>" +
-      initialSymbolHTML(initials) +
+      initialSymbolHTML(initials, patient.createdAt) +
       (patient.memo
         ? "<div class='pastel' id= 'memo'>" + patient.memo + "</div>"
         : "") +
@@ -214,7 +226,7 @@ function updatePatientTable(patients) {
         patient.name +
         "</td>" +
         "<td><div>" +
-        initialSymbolHTML(initials) +
+        initialSymbolHTML(initials, patient.createdAt) +
         (patient.memo
           ? "<div class='pastel' id= 'memo'>" + patient.memo + "</div>"
           : "") +
@@ -272,6 +284,7 @@ function updatePatientTable(patients) {
       tableBody.appendChild(row);
     }
   }
+  enablePatientEditOnDblClick();
 }
 
 function fetchPatients() {
@@ -414,7 +427,7 @@ function updateWaitlistTable(waitlist) {
       patient.name +
       "</td>" +
       "<td><div class='pastel-wrapper2'>" +
-      initialSymbolHTML(initial) +
+      initialSymbolHTML(initials, patient.createdAt) +
       (patient.memo
         ? "<div class='pastel' id= 'memo'>" + patient.memo + "</div>"
         : "") +
@@ -604,4 +617,182 @@ function deleteInitial(id) {
   };
   xhr.send();
   initialsHTML();
+}
+
+function fetchAndShowPatientInfo() {
+  var xhr = createXHR();
+  xhr.open("GET", "/api/patients", true);
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      try {
+        var data = window.JSON
+          ? JSON.parse(xhr.responseText)
+          : eval("(" + xhr.responseText + ")");
+        showPatientInfoModal(data);
+      } catch (e) {
+        console.log(e);
+        alert("데이터 파싱 실패");
+      }
+    }
+  };
+  xhr.send();
+}
+
+function showPatientInfoModal(patients) {
+  var tbody = document.getElementById("patientInfoBody");
+  while (tbody.firstChild) {
+    tbody.removeChild(tbody.firstChild);
+  }
+
+  for (var i = 0; i < patients.length; i++) {
+    var p = patients[i];
+    var tr = document.createElement("tr");
+
+    var td1 = document.createElement("td");
+    td1.innerHTML = p.chartNumber
+      ? p.chartNumber.slice(0, 6) +
+        '<span id="chart_number">' +
+        p.chartNumber.slice(6) +
+        "</span>"
+      : "";
+    tr.appendChild(td1);
+
+    var td2 = document.createElement("td");
+    td2.appendChild(document.createTextNode(p.name || ""));
+    tr.appendChild(td2);
+
+    var td3 = document.createElement("td");
+    td3.appendChild(document.createTextNode(formatDate(p.createdAt)));
+    tr.appendChild(td3);
+    tr.style.backgroundColor = "aliceblue";
+
+    tbody.appendChild(tr);
+  }
+
+  document.getElementById("modalOverlay").style.display = "block";
+  document.getElementById("patientInfoModal").style.display = "block";
+}
+
+function closePatientModal() {
+  document.getElementById("modalOverlay").style.display = "none";
+  document.getElementById("patientInfoModal").style.display = "none";
+}
+
+function formatDate(isoString) {
+  if (!isoString) return "";
+  var d = new Date(isoString);
+  var hh = d.getHours();
+  var min = d.getMinutes();
+
+  return (
+    (hh < 12 ? "오전 " + hh : "오후 " + (hh - 12)) +
+    "시 " +
+    (min < 10 ? "0" + min : min) +
+    "분"
+  );
+}
+function enablePatientEditOnDblClick() {
+  var rows = document.querySelectorAll("#sortable tr, #activePatients tr");
+  for (var i = 0; i < rows.length; i++) {
+    (function (row) {
+      row.ondblclick = function () {
+        var id = row.getAttribute("data-id");
+        openEditPatientModal(id);
+      };
+    })(rows[i]);
+  }
+}
+
+function openEditPatientModal(patientId) {
+  var xhr = createXHR();
+  xhr.open("GET", "/api/patients/" + patientId, true); // 개별 환자 정보 조회 API
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      try {
+        var patient = JSON.parse(xhr.responseText);
+
+        document.getElementById("editPatientId").value = patient.id;
+        document.getElementById("editName").value = patient.name || "";
+        document.getElementById("editMemo").value = patient.memo || "";
+
+        var wrapper = document.getElementById("editInitialsWrapper");
+        wrapper.innerHTML = "";
+
+        for (var id in initialMap) {
+          if (initialMap.hasOwnProperty(id)) {
+            var item = initialMap[id];
+            var div = document.createElement("div");
+            div.className = "pastel";
+            div.style.backgroundColor = item.color;
+
+            var checked =
+              patient.initial
+                .map(function (i) {
+                  return typeof i === "string" ? i : i.id;
+                })
+                .indexOf(id) !== -1;
+
+            div.innerHTML =
+              "<label><input type='checkbox' name='editInitial' value='" +
+              id +
+              "'" +
+              (checked ? " checked" : "") +
+              "> " +
+              item.symbol +
+              "</label>";
+
+            wrapper.appendChild(div);
+          }
+        }
+
+        document.getElementById("modalOverlay").style.display = "block";
+        document.getElementById("editPatientModal").style.display = "block";
+      } catch (e) {
+        alert("환자 정보 불러오기 실패");
+      }
+    }
+  };
+  xhr.send();
+}
+
+function closeEditPatientModal() {
+  document.getElementById("editPatientModal").style.display = "none";
+  document.getElementById("modalOverlay").style.display = "none";
+}
+function submitEditPatient() {
+  var id = document.getElementById("editPatientId").value;
+  var name = document.getElementById("editName").value;
+  var memo = document.getElementById("editMemo").value;
+
+  var checkboxes = document.getElementsByName("editInitial");
+  var selectedInitials = [];
+  for (var i = 0; i < checkboxes.length; i++) {
+    if (checkboxes[i].checked) {
+      selectedInitials.push(checkboxes[i].value);
+    }
+  }
+
+  var data = {
+    name: name,
+    memo: memo,
+    initial: selectedInitials,
+  };
+
+  var xhr = createXHR();
+  xhr.open("POST", "/api/patients/" + id, true); // POST로 보내되 PATCH 의미를 담음
+  xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+  xhr.setRequestHeader("X-HTTP-Method-Override", "PATCH"); // 서버가 이걸 감지해야 함
+
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4) {
+      if (xhr.status === 200 || xhr.status === 204) {
+        closeEditPatientModal();
+        fetchPatients(); // 목록 새로고침
+      } else {
+        alert("환자 정보 수정 실패");
+      }
+    }
+  };
+
+  xhr.send(window.JSON ? JSON.stringify(data) : evalStringify(data));
 }

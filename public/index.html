@@ -24,6 +24,9 @@
           <button id="initial_control" onclick="openModal()">
             이니셜 관리
           </button>
+          <button id="time_view" onclick="fetchAndShowPatientInfo()">
+            접수 시간 조회
+          </button>
         </div>
         <div class="column">
           <h2>진료 중인 환자</h2>
@@ -166,7 +169,91 @@
         <button id="add_button" type="submit">추가</button>
       </form>
     </div>
-    <script src="script.js"></script>
+    <div
+      id="patientInfoModal"
+      style="
+        display: none;
+        position: fixed;
+        top: 50px;
+        left: 50%;
+        width: 400px;
+        margin-left: -200px;
+        background: black;
+        color: white;
+        border: 1px solid #888;
+        border-radius: 20px;
+        padding: 20px;
+        z-index: 1000;
+      "
+    >
+      <div style="text-align: right">
+        <a
+          href="#"
+          style="color: red; text-decoration: none"
+          onclick="closePatientModal()"
+          >✖︎</a
+        >
+      </div>
+      <h3>접수 시간 조회</h3>
+      <table>
+        <colgroup>
+          <col width="25%" />
+          <col width="25%" />
+          <col width="50%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>차트번호</th>
+            <th>이름</th>
+            <th>등록일</th>
+          </tr>
+        </thead>
+        <tbody id="patientInfoBody"></tbody>
+      </table>
+    </div>
+    <div
+      id="editPatientModal"
+      class="modal"
+      style="
+        display: none;
+        position: fixed;
+        top: 50px;
+        left: 50%;
+        width: 400px;
+        margin-left: -200px;
+        background: black;
+        color: white;
+        border: 1px solid #888;
+        border-radius: 20px;
+        padding: 20px;
+        z-index: 1000;
+      "
+    >
+      <div class="modal-content">
+        <div style="text-align: right">
+          <a
+            href="#"
+            style="color: red; text-decoration: none"
+            onclick="closeEditPatientModal()"
+            >✖︎</a
+          >
+        </div>
+        <h3>환자 정보 수정</h3>
+        <form id="editPatientForm">
+          <label>차트번호</label>
+          <input type="text" id="editPatientId" />
+          <label>이름</label>
+          <input type="text" id="editName" /><br />
+          <label>이니셜</label>
+          <div id="editInitialsWrapper" class="pastel-wrapper"></div>
+          <label>메모</label>
+          <input type="text" id="editMemo" /><br />
+
+          <button type="button" onclick="submitEditPatient()">저장</button>
+        </form>
+      </div>
+    </div>
     <div id="modalOverlay"></div>
+    <script src="script.js"></script>
   </body>
 </html>

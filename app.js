@@ -1,12 +1,19 @@
 const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
-const app = express();
-const port = 3000;
 const path = require("path");
 
+const app = express();
+const port = 3000;
+
+// 미들웨어 설정
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static("public"));
+
+// 정적 파일 서빙
+const dirPath = path.join(__dirname, "public");
+app.use(express.static(dirPath));
+
+// HTTP Method Override 지원
 app.use((req, res, next) => {
   if (req.headers["x-http-method-override"]) {
     req.method = req.headers["x-http-method-override"].toUpperCase();
@@ -14,9 +21,9 @@ app.use((req, res, next) => {
   next();
 });
 
+// DB 초기화
 const db = new sqlite3.Database("patients.db");
 
-// 초기 DB 생성 및 초기 데이터 삽입
 db.serialize(() => {
   db.run(`DROP TABLE IF EXISTS patients`);
   db.run(`
@@ -29,7 +36,8 @@ db.serialize(() => {
       orderIndex INTEGER,
       inTreatment BOOLEAN,
       waitlist BOOLEAN,
-      memo TEXT
+      memo TEXT,
+      createdAt DATETIME
     )
   `);
 
@@ -142,13 +150,25 @@ app.post("/submit", (req, res) => {
     ? initial
     : "";
 
+  const createdAt = new Date().toISOString();
+
   db.get("SELECT MAX(orderIndex) as maxOrder FROM patients", (err, row) => {
     const nextOrder = (row?.maxOrder || 0) + 1;
 
     db.run(
-      `INSERT INTO patients (chartNumber, name, initial, roomNumber, orderIndex, inTreatment, waitlist, memo)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [chartNumber, name, initialStr, 0, nextOrder, false, false, memo],
+      `INSERT INTO patients (chartNumber, name, initial, roomNumber, orderIndex, inTreatment, waitlist, memo, createdAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        chartNumber,
+        name,
+        initialStr,
+        0,
+        nextOrder,
+        false,
+        false,
+        memo,
+        createdAt,
+      ],
       (err) => {
         if (err) return res.status(500).send("DB 저장 실패");
         res.redirect("/");
@@ -223,6 +243,75 @@ app.post("/cancle", (req, res) => {
   );
 });
 
+// PATCH: 환자 정보 수정
+app.patch("/api/patients/:id", (req, res) => {
+  const { id } = req.params;
+  const {
+    chartNumber,
+    name,
+    initial,
+    roomNumber,
+    inTreatment,
+    waitlist,
+    memo,
+    orderIndex,
+  } = req.body;
+
+  const fields = [];
+  const values = [];
+
+  if (chartNumber !== undefined) {
+    fields.push("chartNumber = ?");
+    values.push(chartNumber);
+  }
+  if (name !== undefined) {
+    fields.push("name = ?");
+    values.push(name);
+  }
+  if (initial !== undefined) {
+    const initialStr = Array.isArray(initial)
+      ? initial.join(",")
+      : typeof initial === "string"
+      ? initial
+      : "";
+    fields.push("initial = ?");
+    values.push(initialStr);
+  }
+  if (roomNumber !== undefined) {
+    fields.push("roomNumber = ?");
+    values.push(roomNumber);
+  }
+  if (inTreatment !== undefined) {
+    fields.push("inTreatment = ?");
+    values.push(inTreatment ? 1 : 0);
+  }
+  if (waitlist !== undefined) {
+    fields.push("waitlist = ?");
+    values.push(waitlist ? 1 : 0);
+  }
+  if (memo !== undefined) {
+    fields.push("memo = ?");
+    values.push(memo);
+  }
+  if (orderIndex !== undefined) {
+    fields.push("orderIndex = ?");
+    values.push(orderIndex);
+  }
+
+  if (fields.length === 0) {
+    return res.status(400).send("수정할 항목이 없습니다.");
+  }
+
+  values.push(id);
+  const sql = `UPDATE patients SET ${fields.join(", ")} WHERE id = ?`;
+
+  db.run(sql, values, function (err) {
+    if (err) return res.status(500).send("DB 수정 실패");
+    if (this.changes === 0) return res.status(404).send("해당 환자 없음");
+    res.sendStatus(200);
+  });
+});
+
 // POST: 새로운 initial 추가
 app.post("/api/initials", (req, res) => {
   const { symbol, color, category } = req.body;
@@ -254,6 +343,26 @@ app.delete("/api/initials/:id", (req, res) => {
   });
 });
 
+// GET: 개별 환자 정보 조회
+app.get("/api/patients/:id", (req, res) => {
+  const { id } = req.params;
+
+  db.get("SELECT * FROM patients WHERE id = ?", [id], (err, row) => {
+    if (err) return res.status(500).send("DB 조회 실패");
+    if (!row) return res.status(404).send("해당 환자 없음");
+
+    // initial이 문자열이면 배열로 변환
+    if (row.initial && typeof row.initial === "string") {
+      row.initial = row.initial.split(",").filter(Boolean);
+    } else {
+      row.initial = [];
+    }
+
+    res.json(row);
+  });
+});
+
+// 서버 실행
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
