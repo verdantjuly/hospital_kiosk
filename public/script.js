@@ -427,7 +427,7 @@ function updateWaitlistTable(waitlist) {
       patient.name +
       "</td>" +
       "<td><div class='pastel-wrapper2'>" +
-      initialSymbolHTML(initials, patient.createdAt) +
+      initialSymbolHTML(initial, patient.createdAt) +
       (patient.memo
         ? "<div class='pastel' id= 'memo'>" + patient.memo + "</div>"
         : "") +
@@ -438,6 +438,12 @@ function updateWaitlistTable(waitlist) {
       patient.id +
       "' />" +
       "<button type='submit'>⬆</button>" +
+      "</form>" +
+      '<form action="/complete" method="POST">' +
+      '<input type="hidden" name="id" value="' +
+      patient.id +
+      '" />' +
+      '<button type="submit" id="complete">✔</button>' +
       "</form>" +
       "</td>";
 
@@ -710,8 +716,8 @@ function openEditPatientModal(patientId) {
     if (xhr.readyState === 4 && xhr.status === 200) {
       try {
         var patient = JSON.parse(xhr.responseText);
-
         document.getElementById("editPatientId").value = patient.id;
+        document.getElementById("editChartNumber").value = patient.chartNumber;
         document.getElementById("editName").value = patient.name || "";
         document.getElementById("editMemo").value = patient.memo || "";
 
@@ -761,6 +767,7 @@ function closeEditPatientModal() {
 }
 function submitEditPatient() {
   var id = document.getElementById("editPatientId").value;
+  var chartNumber = document.getElementById("editChartNumber").value;
   var name = document.getElementById("editName").value;
   var memo = document.getElementById("editMemo").value;
 
@@ -775,6 +782,7 @@ function submitEditPatient() {
   var data = {
     name: name,
     memo: memo,
+    chartNumber: chartNumber,
     initial: selectedInitials,
   };
 
