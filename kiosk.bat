@@ -1,4 +1,4 @@
 @echo off
-cd "%USERPROFILE%\Desktop\dayoung"
-node app.js
+chcp 65001
+node "%~dp0\hospital_kiosk\app.js"
 pause
